@@ -1,7 +1,7 @@
 import Layout from "../../components/common/Layout";
 import { useParams, Link } from "react-router-dom";
 import { useEffect, useState } from "react";
-import API from "../../services/api";
+import API, { getAssetUrl } from "../../services/api";
 import { useCart } from "../../context/useCart";
 import { useAuth } from "../../context/useAuth";
 import SideCart from "../../components/common/SideCart";
@@ -30,9 +30,7 @@ export default function VendorDetails() {
           const formattedVendor = {
             ...found,
             fullAddress: city && state ? `${city}, ${state}` : city || state || "Location not specified",
-            displayLogo: found.logo?.startsWith("http") 
-              ? found.logo 
-              : `http://localhost:5000/${found.logo}`
+            displayLogo: found.logo ? getAssetUrl(found.logo) : "https://via.placeholder.com/150?text=Logo"
           };
           setVendor(formattedVendor);
         }
@@ -110,7 +108,7 @@ export default function VendorDetails() {
         <div className="flex flex-wrap gap-2">
           {(Array.isArray(vendor.category) 
             ? vendor.category 
-            : (vendor.category ? vendor.category.replace(/[\[\]"]/g, '').split(',') : ["General"])
+            : (vendor.category ? vendor.category.replace(/[[\]"]/g, '').split(',') : ["General"])
           ).map((cat, index) => (
             <span 
               key={index}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import API from "../../services/api";
+import API, { getAssetUrl } from "../../services/api";
 import VendorCard from "../../components/cards/VendorCard";
 import Layout from "../../components/common/Layout";
 import { useNavigate } from "react-router-dom";
@@ -14,7 +14,6 @@ export default function Home() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    setLoading(true);
     API.get("/vendors/all-vendors")
       .then((res) => setVendors(res.data))
       .catch((err) => {
@@ -164,12 +163,10 @@ export default function Home() {
                       */
                       category: Array.isArray(v.category) 
                         ? v.category 
-                        : (v.category ? v.category.replace(/[\[\]"]/g, '').split(',').map(s => s.trim()) : ["General"]),
+                        : (v.category ? v.category.replace(/[[\]"]/g, '').split(',').map(s => s.trim()) : ["General"]),
                       
                       /* FIXING IMAGE PATHS */
-                      image: v.logo?.startsWith("http") 
-                        ? v.logo 
-                        : (v.logo ? `http://localhost:5000/${v.logo}` : "https://via.placeholder.com/400x300"),
+                      image: v.logo ? getAssetUrl(v.logo) : "https://via.placeholder.com/400x300",
                       
                       address: `${v.city}, ${v.state}`,
                     }}
