@@ -37,17 +37,23 @@ const allowedOrigins = [
   .map((origin) => origin?.trim())
   .filter(Boolean);
 
+// app.use(cors({
+//   origin: (origin, callback) => {
+//     // Allow requests with no origin (like mobile apps or curl)
+//     if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
+//       callback(null, true);
+//     } else {
+//       callback(new Error("Not allowed by CORS"));
+//     }
+//   },
+//   credentials: true
+  
+// }));
 app.use(cors({
-  origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl)
-    if (!origin || allowedOrigins.length === 0 || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
+  origin: true, // Allow all origins
+  credentials: true // Allow cookies
 }));
+
 
 // 4. API Routes
 app.use("/api/auth", authRoutes);
