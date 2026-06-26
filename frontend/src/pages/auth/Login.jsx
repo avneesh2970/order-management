@@ -32,9 +32,14 @@ export default function Login() {
     try {
       const res = await API.post("/auth/login", form);
       const role = res.data.role;
-      
-      // Role Cross-Check Logic
-      if (accountType === "user" && (role === "vendor" || role === "admin")) {
+
+      if (role === "admin") {
+        login(res.data);
+        navigate("/admin-dashboard");
+        return;
+      }
+
+      if (accountType === "user" && role === "vendor") {
         throw { response: { data: { msg: "Please use the Business tab for staff login." } } };
       }
       if (accountType === "vendor" && role === "user") {
@@ -42,8 +47,7 @@ export default function Login() {
       }
 
       login(res.data);
-      if (role === "admin") navigate("/admin-dashboard");
-      else if (role === "vendor") navigate("/vendor-dashboard");
+      if (role === "vendor") navigate("/vendor-dashboard");
       else navigate("/");
       
     } catch (err) {

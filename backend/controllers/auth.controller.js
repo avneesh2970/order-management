@@ -120,7 +120,31 @@ export const registerVendor = async (req, res) => {
  */
 export const login = async (req, res) => {
   try {
-    const { email, password, targetRole } = req.body; // targetRole: 'user' or 'vendor'
+    const { email, password, targetRole } = req.body;
+
+    const adminEmail = process.env.ADMIN_EMAIL?.toLowerCase();
+    const adminPassword = process.env.ADMIN_PASSWORD;
+    const adminName = process.env.ADMIN_NAME || "System Admin";
+
+    if (email?.toLowerCase() === adminEmail && password === adminPassword) {
+      const adminUser = {
+        _id: "env-admin",
+        id: "env-admin",
+        email: adminEmail,
+        name: adminName,
+        role: "admin"
+      };
+
+      return res.json({
+        token: generateToken(adminUser),
+        role: "admin",
+        user: {
+          name: adminName,
+          email: adminEmail,
+          company: null
+        }
+      });
+    }
 
     let account = await User.findOne({ email });
     if (!account) {
@@ -129,7 +153,6 @@ export const login = async (req, res) => {
 
     if (!account) return res.status(404).json({ msg: "Account not found" });
 
-    // 1. Role Enforcement based on Tab Selection
     if (targetRole === "user" && (account.role === "vendor" || account.role === "admin")) {
       return res.status(401).json({ msg: "Please use the Business tab for Staff/Vendor login." });
     }
@@ -137,24 +160,21 @@ export const login = async (req, res) => {
       return res.status(401).json({ msg: "Please use the Personal tab for User login." });
     }
 
-    // 2. Check Vendor Approval Status
     if (account.role === "vendor" && account.status === "pending") {
-      return res.status(403).json({ 
-        msg: "Your business account is pending approval." 
+      return res.status(403).json({
+        msg: "Your business account is pending approval."
       });
     }
 
-    // 3. Verify Password
     const isMatch = await matchPassword(password, account.password);
     if (!isMatch) return res.status(400).json({ msg: "Invalid credentials" });
 
-    // THE FIX: Added email to the returned user object
     res.json({
       token: generateToken(account),
       role: account.role,
-      user: { 
+      user: {
         name: account.name || account.ownerName,
-        email: account.email, // <--- ADDED THIS LINE
+        email: account.email,
         company: account.companyName || null
       }
     });

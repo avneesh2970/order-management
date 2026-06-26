@@ -9,8 +9,22 @@ export const protect = async (req, res, next) => {
     token = token.split(" ")[1];
     try {
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      
-      // 1. Try finding in both collections
+
+      if (
+        decoded?.role === "admin" &&
+        decoded?.id === "env-admin" &&
+        decoded?.email?.toLowerCase() === process.env.ADMIN_EMAIL?.toLowerCase()
+      ) {
+        req.user = {
+          id: decoded.id,
+          role: "admin",
+          name: decoded.name || process.env.ADMIN_NAME || process.env.ADMIN_EMAIL,
+          status: "active"
+        };
+
+        return next();
+      }
+
       let account = await User.findById(decoded.id).select("-password") || 
                     await Vendor.findById(decoded.id).select("-password");
 
